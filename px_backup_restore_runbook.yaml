@@ -1,0 +1,19 @@
+---
+- name: Restore PX-Backup to secondary cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  collections:
+    - kubernetes.core
+
+  vars_files:
+    - vars/pxb_recovery.yaml
+    - vars/pxb_recovery.secrets.yaml
+
+  # allow overriding the backup to restore from: -e restore_backup_name=my-backup
+  vars:
+    restore_backup_name: "{{ restore_backup_name }}"
+
+  roles:
+    - pxb_restore

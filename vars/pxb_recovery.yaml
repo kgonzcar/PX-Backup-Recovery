@@ -1,0 +1,48 @@
+# --- Cluster access ---
+kubeconfig_primary: /Users/kgonzalez-cardona/.kube/static-kubeconfigs/config-karla3
+kubeconfig_secondary: /Users/kgonzalez-cardona/.kube/config
+
+pxb_namespace: kube-system #Stork CR location
+
+# --- Which backend to use for BackupLocation ---
+# allowed: azure, s3, nfs
+backup_location_type: nfs
+
+backup_location_name: pxb-backuplocation
+
+# ----------------------------
+# Azure Storage Account
+# ----------------------------
+backup_location_azure:
+  path: "{{ pxb_azure_path }}"
+  storage_account_name: "{{ pxb_azure_storage_account_name }}"
+  storage_account_key: "{{ pxb_azure_storage_account_key }}"
+
+# ----------------------------
+# S3 / FlashBlade
+# ----------------------------
+backup_location_s3:
+  path: "{{ pxb_s3_path }}"           # bucket[/prefix]
+  endpoint: "{{ pxb_s3_endpoint }}"   # FB or AWS endpoint
+  region: REGION                      # Enter region required for AWS
+  access_key: "{{ pxb_s3_access_key }}"
+  secret_key: "{{ pxb_s3_secret_key }}"
+  disable_ssl: false
+  force_path_style: true
+
+# ----------------------------
+# NFS / FlashArray NFS / generic NFS
+# ----------------------------
+backup_location_nfs:
+  server: "{{ pxb_nfs_server }}"
+  export_path: "{{ pxb_nfs_export_path }}"
+  path: "{{ pxb_nfs_path }}"          # subdir within export (can be "/")
+
+# --- App backup / restore ---
+app_backup_schedule_name: central-schedule
+schedule_policy_name: interval-policy
+pxb_app_namespace: central          # Namespace where PX-Backup is deployed
+
+restore_name: restore-px-backup
+restore_backup_name: backup-px-backup
+restore_backup_location: "{{ backup_location_name }}"

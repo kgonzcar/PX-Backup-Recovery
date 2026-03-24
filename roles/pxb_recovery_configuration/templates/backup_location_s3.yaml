@@ -1,0 +1,18 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: BackupLocation
+metadata:
+  name: "{{ backup_location_name }}"
+  namespace: "{{ pxb_namespace }}"
+location:
+  type: s3
+  path: "{{ backup_location_s3.path }}"
+  sync: true
+  s3Config:
+    accessKeyID: "{{ backup_location_s3.access_key }}"
+    secretAccessKey: "{{ backup_location_s3.secret_key }}"
+    endpoint: "{{ backup_location_s3.endpoint }}"
+    {% if backup_location_s3.region is defined and backup_location_s3.region %}
+    region: "{{ backup_location_s3.region }}"
+    {% endif %}
+    disableSSL: {{ backup_location_s3.disable_ssl | default(false) }}
+    s3ForcePathStyle: {{ backup_location_s3.force_path_style | default(true) }}

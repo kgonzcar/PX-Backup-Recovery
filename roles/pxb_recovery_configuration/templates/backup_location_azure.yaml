@@ -1,0 +1,12 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: BackupLocation
+metadata:
+  name: "{{ backup_location_name }}"
+  namespace: "{{ pxb_namespace }}"
+location:
+  type: azure
+  path: "{{ backup_location_azure.path }}"
+  sync: true
+  azureConfig:
+    storageAccountName: "{{ backup_location_azure.storage_account_name }}"
+    storageAccountKey: "{{ backup_location_azure.storage_account_key }}"

@@ -1,0 +1,12 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: SchedulePolicy
+metadata:
+  name: "{{ schedule_policy_name }}"
+policy:
+  interval:
+    # Every 60 minutes
+    intervalMinutes: 60
+    # How many full backups to retain
+    retain: 2
+    # Optional incremental count semantics (example)
+    incrementalCount: 1

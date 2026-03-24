@@ -1,0 +1,24 @@
+---
+- name: Bootstrap Ansible Kubernetes dependencies on this machine
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    python_executable: "{{ ansible_playbook_python | default('python3') }}"
+
+  tasks:
+    - name: Install kubernetes.core collection
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install kubernetes.core
+      register: k8s_collection_result
+      changed_when: "'Successfully installed' in k8s_collection_result.stdout | default('') or
+                     'installed successfully' in k8s_collection_result.stdout | default('')"
+      failed_when: k8s_collection_result.rc != 0
+
+    - name: Install Python Kubernetes libraries (kubernetes, openshift)
+      ansible.builtin.pip:
+        name:
+          - kubernetes
+          - openshift
+        executable: "{{ python_executable }}"

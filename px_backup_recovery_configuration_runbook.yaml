@@ -1,0 +1,15 @@
+---
+- name: Configure PX-Backup backup location and application schedule
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  collections:
+    - kubernetes.core
+
+  vars_files:
+    - vars/pxb_recovery.yaml
+    - vars/pxb_recovery.secrets.yaml
+
+  roles:
+    - pxb_recovery_configuration

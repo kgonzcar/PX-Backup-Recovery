@@ -1,0 +1,146 @@
+---
+- name: Cleanup PX-Backup objects created by recovery runbook
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  collections:
+    - kubernetes.core
+
+  vars_files:
+    - vars/pxb_recovery.yaml
+    - vars/pxb_recovery.secrets.yaml
+
+  tasks:
+    # ----------------------------
+    # Optional: cluster access checks
+    # ----------------------------
+    - name: Verify access to primary cluster
+      command: kubectl --kubeconfig={{ kubeconfig_primary }} get nodes
+      register: primary_nodes
+      changed_when: false
+      failed_when: primary_nodes.rc != 0
+
+    - name: Verify access to secondary cluster
+      command: kubectl --kubeconfig={{ kubeconfig_secondary }} get nodes
+      register: secondary_nodes
+      changed_when: false
+      failed_when: secondary_nodes.rc != 0
+
+    # ----------------------------
+    # Stork presence checks
+    # ----------------------------
+    - name: Check if Stork BackupLocation CRD exists on primary
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        name: backuplocations.stork.libopenstorage.org
+      register: primary_bl_crd
+      failed_when: false
+      changed_when: false
+
+    - name: Set fact whether Stork is installed on primary
+      set_fact:
+        stork_installed_primary: "{{ (primary_bl_crd.resources | default([]) | length) > 0 }}"
+
+    - name: Check if Stork BackupLocation CRD exists on secondary
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        name: backuplocations.stork.libopenstorage.org
+      register: secondary_bl_crd
+      failed_when: false
+      changed_when: false
+
+    - name: Set fact whether Stork is installed on secondary
+      set_fact:
+        stork_installed_secondary: "{{ (secondary_bl_crd.resources | default([]) | length) > 0 }}"
+
+    # ----------------------------
+    # Delete Schedule policy Primary
+    # ----------------------------
+    - name: Delete SchedulePolicy for PX-Backup
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/schedule_policy.yaml') | from_yaml }}"
+      failed_when: false
+
+    # ----------------------------
+    # Delete ApplicationBackupSchedule (primary)
+    # ----------------------------
+    - name: Delete ApplicationBackupSchedule for PX-Backup
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/application_backup_schedule.yaml') | from_yaml }}"
+      failed_when: false
+
+    # ----------------------------
+    # Delete BackupLocation(s)
+    # ----------------------------
+
+    # Azure
+    - name: Delete Azure BackupLocation on primary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_azure.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 'azure'
+        - stork_installed_primary | default(false)
+      failed_when: false
+
+    - name: Delete Azure BackupLocation on secondary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_azure.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 'azure'
+        - stork_installed_secondary | default(false)
+      failed_when: false
+
+    # S3
+    - name: Delete S3 BackupLocation on primary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_s3.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 's3'
+        - stork_installed_primary | default(false)
+      failed_when: false
+
+    - name: Delete S3 BackupLocation on secondary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_s3.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 's3'
+        - stork_installed_secondary | default(false)
+      failed_when: false
+
+    # NFS
+    - name: Delete NFS BackupLocation on primary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_nfs.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 'nfs'
+        - stork_installed_primary | default(false)
+      failed_when: false
+
+    - name: Delete NFS BackupLocation on secondary
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_nfs.yaml') | from_yaml }}"
+      when:
+        - backup_location_type == 'nfs'
+        - stork_installed_secondary | default(false)
+      failed_when: false

@@ -1,0 +1,39 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: ApplicationBackupSchedule
+metadata:
+  name: "{{ app_backup_schedule_name }}"
+  namespace: "{{ pxb_namespace }}"
+spec:
+  backupType: ""
+  parallelBackup: false
+  reclaimPolicy: Retain
+  schedulePolicyName: "{{ schedule_policy_name }}"
+  suspend: false
+  template:
+    spec:
+      advancedResourceLabelSelector: ""
+      backupLocation: "{{ backup_location_name }}"
+      backupObjectType: All
+      backupType: ""
+      csiSnapshotClassMap:
+        csi.vsphere.vmware.com: csi-vsphere-vsc
+      directKDMP: false
+      excludeResourceTypes: null
+      includeResources: null
+      keepCrStatus: false
+      missingNamespaces: null
+      namespaceSelector: ""
+      namespaces:
+        - "{{ pxb_app_namespace }}"
+      options:
+        portworx.io/cloudsnap-incremental-count: "2"
+      platformCredential: ""
+      postExecRule: ""
+      preExecRule: ""
+      rancherProjects: null
+      reclaimPolicy: Delete
+      resourceTypes: null
+      selectors: null
+      skipAutoExecRules: false
+      skipServiceUpdate: false
+      volumeResourceOnlyPolicy: ""

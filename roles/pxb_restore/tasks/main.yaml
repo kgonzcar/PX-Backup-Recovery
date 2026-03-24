@@ -1,0 +1,34 @@
+---
+# ----------------------------
+# Cluster verification
+# ----------------------------
+- name: Verify access to secondary cluster
+  command: kubectl --kubeconfig={{ kubeconfig_secondary }} get nodes
+  register: secondary_nodes
+  changed_when: false
+  failed_when: secondary_nodes.rc != 0
+
+# Optional: ensure Stork is present
+- name: Check if Stork BackupLocation CRD exists on secondary
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_secondary }}"
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: backuplocations.stork.libopenstorage.org
+  register: secondary_bl_crd
+  failed_when: false
+  changed_when: false
+
+- name: Set fact whether Stork is installed on secondary
+  set_fact:
+    stork_installed_secondary: "{{ (secondary_bl_crd.resources | default([]) | length) > 0 }}"
+
+# ----------------------------
+# ApplicationRestore
+# ----------------------------
+- name: Create ApplicationRestore on secondary cluster
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_secondary }}"
+    state: present
+    definition: "{{ lookup('template', 'application_restore.yaml') | from_yaml }}"
+  when: stork_installed_secondary | default(false)

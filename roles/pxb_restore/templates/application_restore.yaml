@@ -1,0 +1,10 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: ApplicationRestore
+metadata:
+  name: "{{ restore_name }}"
+  namespace: "{{ pxb_namespace }}"
+spec:
+  backupName: "{{ restore_backup_name }}"
+  backupLocation: "{{ restore_backup_location }}"
+  namespaceMapping: null
+  replacePolicy: Delete

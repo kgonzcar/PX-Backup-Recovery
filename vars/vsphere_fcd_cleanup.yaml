@@ -1,0 +1,36 @@
+# What to run this play:
+# check= only list/count snapshots
+# cleanup= only delete the oldest snapshots
+# both= run check, the cleanup
+fcd_run_mode: both
+
+# Whether to install the daily cron job
+fcd_install_cron: false
+
+# Datastores and thresholds used inside the scripts (optional to move later)
+fcd_datastores:
+  - PWX-PROD-FC-VMFS-003
+fcd_threshold: 3
+fcd_keep: 2
+
+# Where govc should live
+govc_binary_path: /opt/homebrew/bin/govc
+
+# Where scripts expect the env file
+govc_env_file: "{{ lookup('env', 'HOME') }}/.govc_env"
+
+# Download URL for govc (Linux amd64 example)
+govc_install_url: ""
+
+# Where to install the FCD scripts (tmp is world-writable)
+fcd_script_dir: /tmp/fcd_cleanup
+
+# Where to log cron output (if enabled)
+fcd_log_file: /tmp/px_fcd_cleanup.log
+
+# govc environment (pulled into /root/.govc_env)
+govc_env:
+  GOVC_URL: "{{ govc_url }}"
+  GOVC_USERNAME: "{{ govc_username }}"
+  GOVC_PASSWORD: "{{ govc_password }}"
+  GOVC_INSECURE: "1"

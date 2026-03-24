@@ -1,0 +1,9 @@
+---
+- name: Deploy and run vSphere FCD snapshot cleanup
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+    - vars/vsphere_fcd_cleanup.yaml
+    - vars/vsphere_fcd_cleanup.secrets.yaml
+  roles:
+    - vsphere_fcd_cleanup
