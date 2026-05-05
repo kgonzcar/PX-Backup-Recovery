@@ -1,0 +1,19 @@
+---
+# Default values for the pxb_recovery_configuration role.
+# Override per environment via vars/pxb_recovery.yaml or -e on the CLI.
+
+# Backend selection: azure | s3 | nfs
+pxb_recovery_configuration_backup_location_type: nfs
+
+# Names used by the BackupLocation, SchedulePolicy, and ApplicationBackupSchedule
+pxb_recovery_configuration_backup_location_name: pxb-backuplocation
+pxb_recovery_configuration_schedule_policy_name: interval-policy
+pxb_recovery_configuration_app_backup_schedule_name: central-schedule
+
+# Namespaces
+pxb_recovery_configuration_namespace: kube-system        # Stork CR location
+pxb_recovery_configuration_app_namespace: central        # Namespace where PX-Backup is deployed
+
+# Optional CSI snapshot class mapping for the ApplicationBackupSchedule.
+# Example: { csi.vsphere.vmware.com: csi-vsphere-vsc }
+pxb_recovery_configuration_csi_snapshot_class_map: {}

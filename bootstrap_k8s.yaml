@@ -6,8 +6,21 @@
 
   vars:
     python_executable: "{{ ansible_playbook_python | default('python3') }}"
+    allow_system_python: false
 
   tasks:
+    - name: Refuse to install Python deps into a non-virtualenv interpreter
+      ansible.builtin.assert:
+        that:
+          - allow_system_python | bool
+            or (python_executable is search('venv'))
+            or (python_executable is search('virtualenv'))
+            or (python_executable is search('conda'))
+        fail_msg: >-
+          Refusing to install kubernetes/openshift into a non-virtualenv Python
+          ({{ python_executable }}). Activate a venv first (see README), or
+          re-run with -e allow_system_python=true to override.
+
     - name: Install kubernetes.core collection
       ansible.builtin.command:
         cmd: ansible-galaxy collection install kubernetes.core

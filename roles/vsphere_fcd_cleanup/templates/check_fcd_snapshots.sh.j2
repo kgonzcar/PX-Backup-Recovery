@@ -2,18 +2,19 @@
 set -euo pipefail
 
 # Load govc environment if present
-[ -f "$HOME/.govc_env" ] && source "$HOME/.govc_env"
+[ -f "{{ vsphere_fcd_cleanup_govc_env_file }}" ] && source "{{ vsphere_fcd_cleanup_govc_env_file }}"
 
 #--------------------------------------------------------------------
-# CONFIG
+# CONFIG (rendered by Ansible from vars/vsphere_fcd_cleanup.yaml)
 # --------------------------------------------------------------------
-# Datastores to scan (members of your PXW-ISCSI/FC datastore clusters)
 DATASTORES=(
-  PWX-PROD-FC-VMFS-003
+{% for ds in vsphere_fcd_cleanup_datastores %}
+  {{ ds }}
+{% endfor %}
 )
 
 # Snapshot count threshold
-THRESHOLD=3
+THRESHOLD={{ vsphere_fcd_cleanup_threshold }}
 
 timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 
@@ -44,7 +45,8 @@ for ds in "${DATASTORES[@]}"; do
     snaps=$(govc disk.snapshot.ls -l "${fcd_id}" 2>/dev/null || true)
     [ -z "${snaps}" ] && continue
 
-    count=$(echo "${snaps}" | wc -l | awk '{print $1}')
+    # Count only non-empty lines so any trailing blank or header doesn't skew the total.
+    count=$(echo "${snaps}" | grep -cv '^[[:space:]]*$' || true)
 
     if (( count >= THRESHOLD )); then
       FOUND=1

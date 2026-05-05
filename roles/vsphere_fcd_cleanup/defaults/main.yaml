@@ -1,0 +1,27 @@
+---
+# Default values for the vsphere_fcd_cleanup role.
+# Override per environment via vars/vsphere_fcd_cleanup.yaml.
+
+# Run mode: check | cleanup | both
+vsphere_fcd_cleanup_run_mode: both
+
+# Whether to install the daily cron job
+vsphere_fcd_cleanup_install_cron: false
+
+# Datastores and thresholds used inside the rendered scripts
+vsphere_fcd_cleanup_datastores: []
+vsphere_fcd_cleanup_threshold: 3
+vsphere_fcd_cleanup_keep: 2
+
+# Where govc should live, and the env file the scripts source
+vsphere_fcd_cleanup_govc_binary_path: /opt/homebrew/bin/govc
+vsphere_fcd_cleanup_govc_env_file: "{{ lookup('env', 'HOME') }}/.govc_env"
+
+# Optional download URL (Linux amd64 .gz) for govc auto-install
+vsphere_fcd_cleanup_govc_install_url: ""
+
+# Where to install the FCD scripts (tmp is world-writable)
+vsphere_fcd_cleanup_script_dir: /tmp/fcd_cleanup
+
+# Where to log cron output (if enabled)
+vsphere_fcd_cleanup_log_file: /tmp/px_fcd_cleanup.log

@@ -1,12 +1,12 @@
 apiVersion: stork.libopenstorage.org/v1alpha1
 kind: BackupLocation
 metadata:
-  name: "{{ backup_location_name }}"
-  namespace: "{{ pxb_namespace }}"
+  name: "{{ pxb_recovery_configuration_backup_location_name }}"
+  namespace: "{{ pxb_recovery_configuration_namespace }}"
 location:
   type: nfs
-  path: "{{ backup_location_nfs.path }}"       # subdir under export, or "/"
+  path: "{{ pxb_recovery_configuration_backup_location_nfs.path }}"       # subdir under export, or "/"
   sync: true
   nfsConfig:
-    server: "{{ backup_location_nfs.server }}"
-    exportPath: "{{ backup_location_nfs.export_path }}"
+    server: "{{ pxb_recovery_configuration_backup_location_nfs.server }}"
+    exportPath: "{{ pxb_recovery_configuration_backup_location_nfs.export_path }}"

@@ -2,33 +2,33 @@
 # check= only list/count snapshots
 # cleanup= only delete the oldest snapshots
 # both= run check, the cleanup
-fcd_run_mode: both
+vsphere_fcd_cleanup_run_mode: both
 
 # Whether to install the daily cron job
-fcd_install_cron: false
+vsphere_fcd_cleanup_install_cron: false
 
 # Datastores and thresholds used inside the scripts (optional to move later)
-fcd_datastores:
+vsphere_fcd_cleanup_datastores:
   - PWX-PROD-FC-VMFS-003
-fcd_threshold: 3
-fcd_keep: 2
+vsphere_fcd_cleanup_threshold: 3
+vsphere_fcd_cleanup_keep: 2
 
 # Where govc should live
-govc_binary_path: /opt/homebrew/bin/govc
+vsphere_fcd_cleanup_govc_binary_path: /opt/homebrew/bin/govc
 
 # Where scripts expect the env file
-govc_env_file: "{{ lookup('env', 'HOME') }}/.govc_env"
+vsphere_fcd_cleanup_govc_env_file: "{{ lookup('env', 'HOME') }}/.govc_env"
 
 # Download URL for govc (Linux amd64 example)
-govc_install_url: ""
+vsphere_fcd_cleanup_govc_install_url: ""
 
 # Where to install the FCD scripts (tmp is world-writable)
-fcd_script_dir: /tmp/fcd_cleanup
+vsphere_fcd_cleanup_script_dir: /tmp/fcd_cleanup
 
 # Where to log cron output (if enabled)
-fcd_log_file: /tmp/px_fcd_cleanup.log
+vsphere_fcd_cleanup_log_file: /tmp/px_fcd_cleanup.log
 
-# govc environment (pulled into /root/.govc_env)
+# govc environment (written to vsphere_fcd_cleanup_govc_env_file above)
 govc_env:
   GOVC_URL: "{{ govc_url }}"
   GOVC_USERNAME: "{{ govc_username }}"

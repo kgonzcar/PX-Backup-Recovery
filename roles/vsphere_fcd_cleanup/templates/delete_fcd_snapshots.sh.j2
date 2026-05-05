@@ -2,16 +2,18 @@
 set -euo pipefail
 
 # Load govc environment if present
-[ -f "$HOME/.govc_env" ] && source "$HOME/.govc_env"
+[ -f "{{ vsphere_fcd_cleanup_govc_env_file }}" ] && source "{{ vsphere_fcd_cleanup_govc_env_file }}"
 
 # --------------------------------------------------------------------
-# CONFIG
+# CONFIG (rendered by Ansible from vars/vsphere_fcd_cleanup.yaml)
 # --------------------------------------------------------------------
 DATASTORES=(
-  PWX-PROD-FC-VMFS-003
+{% for ds in vsphere_fcd_cleanup_datastores %}
+  {{ ds }}
+{% endfor %}
 )
-THRESHOLD=3          # delete when count >= 3
-KEEP=1               # keep newest 1 snapshot
+THRESHOLD={{ vsphere_fcd_cleanup_threshold }}          # delete when count >= THRESHOLD
+KEEP={{ vsphere_fcd_cleanup_keep }}                    # keep newest KEEP snapshots
 
 timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 
@@ -39,7 +41,8 @@ for ds in "${DATASTORES[@]}"; do
     snaps=$(govc disk.snapshot.ls -l "${fcd_id}" 2>/dev/null || true)
     [ -z "${snaps}" ] && continue
 
-    count=$(echo "${snaps}" | wc -l | awk '{print $1}')
+    # Count only non-empty lines so any trailing blank or header doesn't skew the total.
+    count=$(echo "${snaps}" | grep -cv '^[[:space:]]*$' || true)
 
     if (( count >= THRESHOLD )); then
       total_candidates=$(( total_candidates + 1 ))
@@ -59,9 +62,13 @@ for ds in "${DATASTORES[@]}"; do
       echo "[$(timestamp)]   Deleting ${to_delete} oldest snapshot(s) for ${fcd_id}..."
       deleted_this_fcd=0
 
-      # Sort by date/time and take oldest N
+      # Sort by date/time and take oldest N.
+      # NOTE: This assumes `govc disk.snapshot.ls -l` columns are
+      #   <id>  <description>  <Mon> <DD> <HH:MM:SS> <YYYY>
+      # Force LC_ALL=C so month-name (-M) sort is consistent across locales.
+      # If govc output format ever changes, switch to `-json` + `jq` sort by createTime.
       delete_sids=$(echo "${snaps}" \
-        | sort -k3,3M -k4,4n -k5,5 \
+        | LC_ALL=C sort -k3,3M -k4,4n -k5,5 \
         | head -n "${to_delete}" \
         | awk '{print $1}')
 

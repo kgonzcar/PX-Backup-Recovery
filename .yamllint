@@ -1,0 +1,28 @@
+---
+# yamllint config for PX-BackupRecovery.
+# Extends the default ruleset with project-specific tweaks.
+
+extends: default
+
+ignore: |
+  # Jinja2 K8s manifest templates contain {% %}/{{ }} blocks that
+  # yamllint cannot parse; ansible-lint already covers them.
+  roles/pxb_recovery_configuration/templates/application_backup_schedule.yaml
+  roles/pxb_recovery_configuration/templates/backup_location_s3.yaml
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+  truthy:
+    allowed-values: ["true", "false", "yes", "no"]
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  document-start: disable
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

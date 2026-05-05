@@ -1,0 +1,8 @@
+---
+# Default values for the pxb_restore role.
+# Override per environment via vars/pxb_recovery.yaml or -e on the CLI.
+
+pxb_restore_name: restore-px-backup
+pxb_restore_backup_name: backup-px-backup
+pxb_restore_backup_location: "{{ pxb_recovery_configuration_backup_location_name | default('pxb-backuplocation') }}"
+pxb_restore_namespace: kube-system

@@ -1,22 +1,28 @@
 apiVersion: stork.libopenstorage.org/v1alpha1
 kind: ApplicationBackupSchedule
 metadata:
-  name: "{{ app_backup_schedule_name }}"
-  namespace: "{{ pxb_namespace }}"
+  name: "{{ pxb_recovery_configuration_app_backup_schedule_name }}"
+  namespace: "{{ pxb_recovery_configuration_namespace }}"
 spec:
   backupType: ""
   parallelBackup: false
   reclaimPolicy: Retain
-  schedulePolicyName: "{{ schedule_policy_name }}"
+  schedulePolicyName: "{{ pxb_recovery_configuration_schedule_policy_name }}"
   suspend: false
   template:
     spec:
       advancedResourceLabelSelector: ""
-      backupLocation: "{{ backup_location_name }}"
+      backupLocation: "{{ pxb_recovery_configuration_backup_location_name }}"
       backupObjectType: All
       backupType: ""
+{% if pxb_recovery_configuration_csi_snapshot_class_map | default({}) %}
       csiSnapshotClassMap:
-        csi.vsphere.vmware.com: csi-vsphere-vsc
+{% for driver, class_name in (pxb_recovery_configuration_csi_snapshot_class_map | default({})).items() %}
+        {{ driver }}: {{ class_name }}
+{% endfor %}
+{% else %}
+      csiSnapshotClassMap: {}
+{% endif %}
       directKDMP: false
       excludeResourceTypes: null
       includeResources: null
@@ -24,7 +30,7 @@ spec:
       missingNamespaces: null
       namespaceSelector: ""
       namespaces:
-        - "{{ pxb_app_namespace }}"
+        - "{{ pxb_recovery_configuration_app_namespace }}"
       options:
         portworx.io/cloudsnap-incremental-count: "2"
       platformCredential: ""

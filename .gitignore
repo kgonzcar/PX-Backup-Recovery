@@ -1,0 +1,23 @@
+# Ansible artifacts
+*.retry
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor / OS artifacts
+.DS_Store
+.idea/
+.vscode/
+
+# Vault password files
+.vault_pass
+.vault_pass.txt
+
+# Local-only overrides (never commit per-user paths/values)
+vars/*.local.yaml
+
+# Never commit unencrypted secrets, but keep example templates
+vars/*.secrets.yaml
+!vars/*.secrets.yaml.example

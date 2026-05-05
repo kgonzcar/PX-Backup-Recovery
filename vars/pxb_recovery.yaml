@@ -1,19 +1,21 @@
 # --- Cluster access ---
-kubeconfig_primary: /Users/kgonzalez-cardona/.kube/static-kubeconfigs/config-karla3
-kubeconfig_secondary: /Users/kgonzalez-cardona/.kube/config
+# Absolute paths to kubeconfig files for the primary (PX-Backup) and
+# secondary (restore target) clusters. Override per environment.
+kubeconfig_primary: "<path-to-primary-kubeconfig>"
+kubeconfig_secondary: "<path-to-secondary-kubeconfig>"
 
-pxb_namespace: kube-system #Stork CR location
+pxb_recovery_configuration_namespace: kube-system  # Stork CR location
 
 # --- Which backend to use for BackupLocation ---
 # allowed: azure, s3, nfs
-backup_location_type: nfs
+pxb_recovery_configuration_backup_location_type: nfs
 
-backup_location_name: pxb-backuplocation
+pxb_recovery_configuration_backup_location_name: pxb-backuplocation
 
 # ----------------------------
 # Azure Storage Account
 # ----------------------------
-backup_location_azure:
+pxb_recovery_configuration_backup_location_azure:
   path: "{{ pxb_azure_path }}"
   storage_account_name: "{{ pxb_azure_storage_account_name }}"
   storage_account_key: "{{ pxb_azure_storage_account_key }}"
@@ -21,7 +23,7 @@ backup_location_azure:
 # ----------------------------
 # S3 / FlashBlade
 # ----------------------------
-backup_location_s3:
+pxb_recovery_configuration_backup_location_s3:
   path: "{{ pxb_s3_path }}"           # bucket[/prefix]
   endpoint: "{{ pxb_s3_endpoint }}"   # FB or AWS endpoint
   region: REGION                      # Enter region required for AWS
@@ -33,16 +35,17 @@ backup_location_s3:
 # ----------------------------
 # NFS / FlashArray NFS / generic NFS
 # ----------------------------
-backup_location_nfs:
+pxb_recovery_configuration_backup_location_nfs:
   server: "{{ pxb_nfs_server }}"
   export_path: "{{ pxb_nfs_export_path }}"
   path: "{{ pxb_nfs_path }}"          # subdir within export (can be "/")
 
 # --- App backup / restore ---
-app_backup_schedule_name: central-schedule
-schedule_policy_name: interval-policy
-pxb_app_namespace: central          # Namespace where PX-Backup is deployed
+pxb_recovery_configuration_app_backup_schedule_name: central-schedule
+pxb_recovery_configuration_schedule_policy_name: interval-policy
+pxb_recovery_configuration_app_namespace: central          # Namespace where PX-Backup is deployed
 
-restore_name: restore-px-backup
-restore_backup_name: backup-px-backup
-restore_backup_location: "{{ backup_location_name }}"
+pxb_restore_name: restore-px-backup
+pxb_restore_backup_name: backup-px-backup
+pxb_restore_namespace: "{{ pxb_recovery_configuration_namespace }}"
+pxb_restore_backup_location: "{{ pxb_recovery_configuration_backup_location_name }}"

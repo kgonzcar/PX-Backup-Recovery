@@ -4,9 +4,6 @@
   connection: local
   gather_facts: false
 
-  collections:
-    - kubernetes.core
-
   vars_files:
     - vars/pxb_recovery.yaml
     - vars/pxb_recovery.secrets.yaml
@@ -16,16 +13,18 @@
     # Optional: cluster access checks
     # ----------------------------
     - name: Verify access to primary cluster
-      command: kubectl --kubeconfig={{ kubeconfig_primary }} get nodes
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_primary }}"
+        kind: Node
       register: primary_nodes
       changed_when: false
-      failed_when: primary_nodes.rc != 0
 
     - name: Verify access to secondary cluster
-      command: kubectl --kubeconfig={{ kubeconfig_secondary }} get nodes
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        kind: Node
       register: secondary_nodes
       changed_when: false
-      failed_when: secondary_nodes.rc != 0
 
     # ----------------------------
     # Stork presence checks
@@ -41,7 +40,7 @@
       changed_when: false
 
     - name: Set fact whether Stork is installed on primary
-      set_fact:
+      ansible.builtin.set_fact:
         stork_installed_primary: "{{ (primary_bl_crd.resources | default([]) | length) > 0 }}"
 
     - name: Check if Stork BackupLocation CRD exists on secondary
@@ -55,8 +54,19 @@
       changed_when: false
 
     - name: Set fact whether Stork is installed on secondary
-      set_fact:
+      ansible.builtin.set_fact:
         stork_installed_secondary: "{{ (secondary_bl_crd.resources | default([]) | length) > 0 }}"
+
+    # ----------------------------
+    # Delete ApplicationRestore (secondary)
+    # ----------------------------
+    - name: Delete ApplicationRestore for PX-Backup
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_secondary }}"
+        state: absent
+        definition: "{{ lookup('template', 'roles/pxb_restore/templates/application_restore.yaml') | from_yaml }}"
+      when: stork_installed_secondary | default(false)
+      failed_when: false
 
     # ----------------------------
     # Delete Schedule policy Primary
@@ -89,7 +99,7 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_azure.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 'azure'
+        - pxb_recovery_configuration_backup_location_type == 'azure'
         - stork_installed_primary | default(false)
       failed_when: false
 
@@ -99,7 +109,7 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_azure.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 'azure'
+        - pxb_recovery_configuration_backup_location_type == 'azure'
         - stork_installed_secondary | default(false)
       failed_when: false
 
@@ -110,7 +120,7 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_s3.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 's3'
+        - pxb_recovery_configuration_backup_location_type == 's3'
         - stork_installed_primary | default(false)
       failed_when: false
 
@@ -120,7 +130,7 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_s3.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 's3'
+        - pxb_recovery_configuration_backup_location_type == 's3'
         - stork_installed_secondary | default(false)
       failed_when: false
 
@@ -131,7 +141,7 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_nfs.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 'nfs'
+        - pxb_recovery_configuration_backup_location_type == 'nfs'
         - stork_installed_primary | default(false)
       failed_when: false
 
@@ -141,6 +151,6 @@
         state: absent
         definition: "{{ lookup('template', 'roles/pxb_recovery_configuration/templates/backup_location_nfs.yaml') | from_yaml }}"
       when:
-        - backup_location_type == 'nfs'
+        - pxb_recovery_configuration_backup_location_type == 'nfs'
         - stork_installed_secondary | default(false)
       failed_when: false

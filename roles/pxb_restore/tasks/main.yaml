@@ -3,10 +3,11 @@
 # Cluster verification
 # ----------------------------
 - name: Verify access to secondary cluster
-  command: kubectl --kubeconfig={{ kubeconfig_secondary }} get nodes
-  register: secondary_nodes
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_secondary }}"
+    kind: Node
+  register: pxb_restore_secondary_nodes
   changed_when: false
-  failed_when: secondary_nodes.rc != 0
 
 # Optional: ensure Stork is present
 - name: Check if Stork BackupLocation CRD exists on secondary
@@ -15,13 +16,20 @@
     api_version: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     name: backuplocations.stork.libopenstorage.org
-  register: secondary_bl_crd
+  register: pxb_restore_secondary_bl_crd
   failed_when: false
   changed_when: false
 
 - name: Set fact whether Stork is installed on secondary
-  set_fact:
-    stork_installed_secondary: "{{ (secondary_bl_crd.resources | default([]) | length) > 0 }}"
+  ansible.builtin.set_fact:
+    pxb_restore_stork_installed_secondary: "{{ (pxb_restore_secondary_bl_crd.resources | default([]) | length) > 0 }}"
+
+- name: Assert Stork is installed on the secondary cluster
+  ansible.builtin.assert:
+    that: pxb_restore_stork_installed_secondary | default(false)
+    fail_msg: >-
+      Stork BackupLocation CRD missing on the secondary cluster.
+      Install Stork on the restore target before running the restore phase.
 
 # ----------------------------
 # ApplicationRestore
@@ -31,4 +39,3 @@
     kubeconfig: "{{ kubeconfig_secondary }}"
     state: present
     definition: "{{ lookup('template', 'application_restore.yaml') | from_yaml }}"
-  when: stork_installed_secondary | default(false)
